@@ -74,7 +74,7 @@ else
 	HOLD=""
 fi
 
-# Delete Log only in Normal Mode !
+# NOTE conditional_clear()  Delete Log only in Normal Mode !
 function conditional_clear() {
 
 	if [[ "$flux_output_device" != "/dev/stdout" ]]; then clear; fi
@@ -600,7 +600,7 @@ Updated successfully! Restarting the script to apply the changes ..."$transparen
 
 fi
 
-# Show info for the selected AP
+# TODO Show info for the selected AP
 function infoap {
 
 	Host_MAC_info1=`echo $Host_MAC | awk 'BEGIN { FS = ":" } ; { print $1":"$2":"$3}' | tr [:upper:] [:lower:]`
@@ -623,7 +623,7 @@ function infoap {
 
 ############################################### < MENU > ###############################################
 
-# Windows + Resolution
+# TODO 配置屏幕坐标 Windows + Resolution
 function setresolution {
 
 	function resA {
@@ -699,6 +699,7 @@ esac
 language
 }
 
+# TODO 配置语言
 function language {
 
 	conditional_clear
@@ -1070,7 +1071,7 @@ function setinterface {
 
   conditional_clear
 	top
-	#unblock interfaces
+	# NOTE rfkill unblock interfaces 打开所有设备
 	rfkill unblock all
 
 	# Collect all interfaces in montitor mode & stop all
