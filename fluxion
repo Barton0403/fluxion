@@ -1057,6 +1057,8 @@ function chinese {
 	selection_2="选择一个目标. 重扫 按$red r$transparent"
 	setinterface
 }
+
+# TODO 选择网卡，信道，要破解的wifi
 # Choose Interface
 function setinterface {
   Sites="~/fluxion/stable/Sites"
@@ -1071,18 +1073,26 @@ function setinterface {
 
   conditional_clear
 	top
-	# NOTE rfkill unblock interfaces 打开所有设备
+	# NOTE 打开所有设备
+	# rfkill unblock interfaces 
 	rfkill unblock all
 
 	# Collect all interfaces in montitor mode & stop all
+	# 获取所有监听接口
+	# iwconfig 获取所有接口，grep 过滤前部分的信息 ，awk 对记录列分域
 	KILLMONITOR=`iwconfig 2>&1 | grep Monitor | awk '{print $1}'`
 
+  # NOTE 关闭所有监听接口
 	for monkill in ${KILLMONITOR[@]}; do
+    # NOTE 通过airmon-ng 控制无线接口
 		airmon-ng stop $monkill >$flux_output_device
 		echo -n "$monkill, "
 	done
 
+  # NOTE 选择无线接口
 	# Create a variable with the list of physical network interfaces
+	# wirelessifaces 保存输出内容
+	# readarray 读取文本以数组形式保存，创建wirelessifaces数组变量
 	readarray -t wirelessifaces < <(./airmon |grep "-" | cut -d- -f1)
 	INTERFACESNUMBER=`./airmon| grep -c "-"`
 
@@ -1103,12 +1113,14 @@ function setinterface {
 		read line
 		PREWIFI=$(echo ${wirelessifaces[$line]} | awk '{print $1}')
 
+    # FIXME 可能造成无限循环
 		if [ $(echo "$PREWIFI" | wc -m) -le 3 ]; then
 			conditional_clear
 			top
 			setinterface
 		fi
 
+    # 关闭所有占用软件
 		readarray -t softwaremolesto < <(./airmon check $PREWIFI | tail -n +8 | grep -v "on interface" | awk '{ print $2 }')
 		WIFIDRIVER=$(./airmon | grep "$PREWIFI" | awk '{print($(NF-2))}')
 		rmmod -f "$WIFIDRIVER" &>$flux_output_device 2>&1
@@ -1118,6 +1130,7 @@ function setinterface {
 		done
 		sleep 0.5
 
+    # 载入wifi设备，无法载入则卸载
 		modprobe "$WIFIDRIVER" &>$flux_output_device 2>&1
 		sleep 0.5
 		# Select Wifi Interface
@@ -1125,6 +1138,7 @@ function setinterface {
 			break;
 		done
 
+    # 启动选择的wifi接口，定义变量
 		WIFIMONITOR=$(./airmon start $PREWIFI | grep "enabled on" | cut -d " " -f 5 | cut -d ")" -f 1)
 		WIFI_MONITOR=$WIFIMONITOR
 		WIFI=$PREWIFI
